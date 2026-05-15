@@ -1,3 +1,5 @@
+import jsPDF from 'jspdf';
+
 function csvCell(value: unknown): string {
   if (value === null || value === undefined) return '';
   const s = String(value);
@@ -144,4 +146,247 @@ export function downloadTextFile(filename: string, content: string, mime: string
   a.download = filename;
   a.click();
   window.URL.revokeObjectURL(url);
+}
+
+export function generateComprobantePdf(data: ComprobanteLiquidacionApi): void {
+  const doc = new jsPDF();
+  const shortId = data.uuidLote?.substring(0, 8) ?? 'lote';
+  
+  // Colores del banco
+  const azulOscuro = '#0D1B4B';
+  const dorado = '#C9A84C';
+  
+  // Encabezado con branding
+  doc.setFillColor(azulOscuro);
+  doc.rect(0, 0, 210, 40, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.text('BAN BANQUITO', 20, 25);
+  
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Switch de Pagos Masivos', 20, 33);
+  
+  doc.setTextColor(dorado);
+  doc.setFontSize(10);
+  doc.text('Comprobante de Liquidación', 140, 25);
+  
+  // Línea dorada
+  doc.setDrawColor(dorado);
+  doc.setLineWidth(2);
+  doc.line(0, 40, 210, 40);
+  
+  // Información del lote
+  doc.setTextColor(azulOscuro);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Información del Lote', 20, 55);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text(`UUID: ${data.uuidLote ?? ''}`, 20, 65);
+  doc.text(`Fecha: ${data.fechaGeneracion ?? ''}`, 20, 72);
+  
+  // Sección Empresa
+  doc.setFillColor(250, 250, 252);
+  doc.roundedRect(15, 82, 180, 35, 3, 3, 'F');
+  doc.setDrawColor(azulOscuro);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(15, 82, 180, 35, 3, 3, 'S');
+  
+  doc.setTextColor(azulOscuro);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Empresa', 20, 92);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text(`RUC: ${data.empresa?.rucEmpresa ?? ''}`, 20, 99);
+  doc.text(`Cuenta Matriz: ${data.empresa?.cuentaMatrizCargo ?? ''}`, 20, 106);
+  
+  // Sección Resumen de Pagos
+  doc.setTextColor(azulOscuro);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Resumen de Pagos', 20, 125);
+  
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(20, 130, 190, 130);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  const rp = data.resumenPagos;
+  doc.text(`Transacciones Exitosas: ${rp?.transaccionesExitosas ?? ''}`, 20, 138);
+  doc.text(`Transacciones Rechazadas: ${rp?.transaccionesRechazadas ?? ''}`, 20, 145);
+  doc.setTextColor(azulOscuro);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`Monto Total Dispersado: $${rp?.montoTotalDispersado ?? ''}`, 20, 152);
+  
+  // Sección Liquidación
+  doc.setFillColor(255, 252, 240);
+  doc.roundedRect(15, 158, 180, 45, 3, 3, 'F');
+  doc.setDrawColor(dorado);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(15, 158, 180, 45, 3, 3, 'S');
+  
+  doc.setTextColor(dorado);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Liquidación del Servicio', 20, 172);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  const liq = data.liquidacionServicio;
+  doc.text(`Tarifa Unitaria: $${liq?.tarifaUnitariaAplicada ?? ''}`, 20, 180);
+  doc.text(`Subtotal Comisión: $${liq?.subtotalComision ?? ''}`, 20, 186);
+  doc.text(`IVA (${liq?.ivaPorcentajeAplicado ?? ''}%): $${liq?.montoIva ?? ''}`, 20, 192);
+  
+  doc.setTextColor(azulOscuro);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text(`Total a Debitar: $${liq?.totalDebitado ?? ''}`, 20, 200);
+  
+  // Pie de página
+  doc.setFillColor(azulOscuro);
+  doc.rect(0, 270, 210, 30, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Este documento es un comprobante oficial de liquidación.', 20, 280);
+  doc.text('Banco Banquito - Switch de Pagos Masivos', 20, 287);
+  doc.text(`Generado: ${new Date().toLocaleString('es-EC')}`, 140, 280);
+  
+  doc.save(`Comprobante_LIQUIDACION_${shortId}.pdf`);
+}
+
+export function generateNovedadesPdf(data: ReporteNovedadesApi): void {
+  const doc = new jsPDF();
+  const shortId = data.uuidLote?.substring(0, 8) ?? 'lote';
+  
+  // Colores del banco
+  const azulOscuro = '#0D1B4B';
+  const dorado = '#C9A84C';
+  
+  // Encabezado con branding
+  doc.setFillColor(azulOscuro);
+  doc.rect(0, 0, 210, 40, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(24);
+  doc.setFont('helvetica', 'bold');
+  doc.text('BAN BANQUITO', 20, 25);
+  
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Switch de Pagos Masivos', 20, 33);
+  
+  doc.setTextColor(dorado);
+  doc.setFontSize(10);
+  doc.text('Reporte de Novedades', 140, 25);
+  
+  // Línea dorada
+  doc.setDrawColor(dorado);
+  doc.setLineWidth(2);
+  doc.line(0, 40, 210, 40);
+  
+  // Información del lote
+  doc.setTextColor(azulOscuro);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Información del Lote', 20, 55);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  doc.text(`UUID: ${data.uuidLote ?? ''}`, 20, 65);
+  doc.text(`Fecha: ${data.fechaGeneracion ?? ''}`, 20, 72);
+  
+  // Sección Resumen
+  doc.setFillColor(250, 250, 252);
+  doc.roundedRect(15, 82, 180, 42, 3, 3, 'F');
+  doc.setDrawColor(azulOscuro);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(15, 82, 180, 42, 3, 3, 'S');
+  
+  doc.setTextColor(azulOscuro);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Resumen', 20, 92);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(100, 100, 100);
+  const r = data.resumen;
+  doc.text(`Total Líneas: ${r?.totalLineas ?? ''}`, 20, 100);
+  doc.text(`Exitosas: ${r?.exitosas ?? ''}`, 20, 106);
+  doc.text(`Rechazadas: ${r?.rechazadas ?? ''}`, 20, 112);
+  doc.text(`Fallidas: ${r?.fallidas ?? ''}`, 20, 118);
+  
+  // Sección Detalle de Líneas
+  doc.setTextColor(azulOscuro);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Detalle de Líneas', 20, 135);
+  
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.3);
+  doc.line(20, 140, 190, 140);
+  
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  
+  let y = 150;
+  for (const l of data.lineas ?? []) {
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+    
+    // Fondo para cada línea
+    doc.setFillColor(l.estado === 'EXITOSA' ? '#F0FFF0' : '#FFF0F0');
+    doc.roundedRect(15, y - 4, 180, 32, 2, 2, 'F');
+    doc.setDrawColor(azulOscuro);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(15, y - 4, 180, 32, 2, 2, 'S');
+    
+    doc.setTextColor(azulOscuro);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`#${l.secuencial ?? ''} - ${l.estado ?? ''}`, 20, y + 2);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Cuenta: ${l.cuentaDestino ?? ''}`, 20, y + 9);
+    doc.text(`Beneficiario: ${l.nombreBeneficiario ?? ''}`, 20, y + 16);
+    doc.text(`Monto: $${l.monto ?? ''}`, 20, y + 23);
+    
+    if (l.codigoError) {
+      doc.setTextColor(200, 0, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Error: ${l.codigoError} - ${l.mensajeError ?? ''}`, 20, y + 30);
+      y += 42;
+    } else {
+      y += 35;
+    }
+  }
+  
+  // Pie de página
+  doc.setFillColor(azulOscuro);
+  doc.rect(0, 270, 210, 30, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Este documento es un reporte oficial de novedades.', 20, 280);
+  doc.text('Banco Banquito - Switch de Pagos Masivos', 20, 287);
+  doc.text(`Generado: ${new Date().toLocaleString('es-EC')}`, 140, 280);
+  
+  doc.save(`Reporte_NOVEDADES_${shortId}.pdf`);
 }

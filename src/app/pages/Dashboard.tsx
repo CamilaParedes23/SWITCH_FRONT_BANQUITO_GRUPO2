@@ -188,7 +188,6 @@ export function Dashboard() {
           <table className="w-full text-left">
             <thead className="bg-gray-50/50">
               <tr>
-                <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase">UUID Lote</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase">Empresa</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase text-right">Monto</th>
                 <th className="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase text-center">Estado</th>
@@ -198,7 +197,6 @@ export function Dashboard() {
             <tbody className="divide-y divide-gray-100">
               {batches.map((batch) => (
                 <tr key={batch.uuidLote} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 font-mono text-[11px] text-gray-400">{batch.uuidLote.substring(0, 8)}...</td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{batch.rucEmpresa}</td>
                   <td className="px-6 py-4 text-sm font-bold text-right text-gray-900">
                     ${batch.montoTotalDeclarado.toLocaleString('es-EC', { minimumFractionDigits: 2 })}

@@ -46,7 +46,6 @@ export function ServiceTypes() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th>
@@ -55,7 +54,7 @@ export function ServiceTypes() {
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
                     <div className="flex flex-col items-center gap-2">
                       <RefreshCw className="w-8 h-8 animate-spin text-[#0D1B4B]" />
                       <span>Cargando servicios desde el servidor...</span>
@@ -64,16 +63,13 @@ export function ServiceTypes() {
                 </tr>
               ) : services.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
                     No se encontraron servicios configurados en la base de datos.
                   </td>
                 </tr>
               ) : (
                 services.map((service) => (
                   <tr key={service.codigo} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono font-medium text-gray-900">
-                      {service.codigo}
-                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {service.nombre}
                     </td>
