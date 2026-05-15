@@ -168,7 +168,6 @@ export function BatchList() {
           <table className="w-full text-left border-collapse">
             <thead className="bg-[#F8FAFC] border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase">UUID</th>
                 <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase">Archivo</th>
                 {user?.role !== 'EMPRESA' && <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase">RUC</th>}
                 <th className="px-6 py-4 text-xs font-bold text-gray-600 uppercase">Canal</th>
@@ -182,22 +181,19 @@ export function BatchList() {
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-20 text-center">
+                  <td colSpan={8} className="px-6 py-20 text-center">
                     <RefreshCw className="w-10 h-10 animate-spin text-[#0D1B4B] mx-auto opacity-20" />
                   </td>
                 </tr>
               ) : batches.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-6 py-20 text-center text-gray-400 italic font-light">
+                  <td colSpan={8} className="px-6 py-20 text-center text-gray-400 italic font-light">
                     No se encontraron lotes para los filtros seleccionados.
                   </td>
                 </tr>
               ) : (
                 batches.map((batch) => (
                   <tr key={batch.uuidLote} className="hover:bg-gray-50 transition-colors group">
-                    <td className="px-6 py-4 text-[11px] font-mono text-gray-400">
-                      {batch.uuidLote.substring(0, 8)}
-                    </td>
                     <td className="px-6 py-4 text-sm font-semibold text-[#0D1B4B]">
                       {batch.nombreArchivo}
                     </td>

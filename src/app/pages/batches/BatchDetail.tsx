@@ -6,11 +6,14 @@ import {
   comprobanteLiquidacionToCsv,
   downloadTextFile,
   reporteNovedadesToCsv,
+  generateComprobantePdf,
+  generateNovedadesPdf,
 } from '../../utils/batchReportExport';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { ConfirmModal } from '../../components/shared/ConfirmModal';
 import { toast } from 'sonner';
 import { useBatchDetail } from '../../hooks/useBatchDetail';
+import { useAuth } from '../../context/AuthContext';
 import { BatchHeader } from './BatchDetail/BatchHeader';
 import { BatchActions } from './BatchDetail/BatchActions';
 import { BatchLinesTable } from './BatchDetail/BatchLinesTable';
@@ -21,6 +24,7 @@ import { ComprobanteTab } from './BatchDetail/ComprobanteTab';
 export function BatchDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const {
     batch,
@@ -41,6 +45,8 @@ export function BatchDetail() {
   const [activeTab, setActiveTab] = useState<'lines' | 'settlement' | 'novedades' | 'comprobante'>('lines');
   const [showActionModal, setShowActionModal] = useState<{ type: 'VALIDATE' | 'PROCESS' | 'LIQUIDATE' | 'ANNUL' | null }>({ type: null });
   const [annulReason, setAnnulReason] = useState('');
+  const [novedadesFormat, setNovedadesFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
+  const [comprobanteFormat, setComprobanteFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
 
   const handleAction = async () => {
     if (!id) return;
@@ -75,21 +81,31 @@ export function BatchDetail() {
     }
   };
 
-  const handleDownloadReport = async (type: 'NOVEDADES' | 'COMPROBANTE', format: 'csv' | 'json') => {
+  const handleDownloadReport = async (type: 'NOVEDADES' | 'COMPROBANTE', format: 'csv' | 'json' | 'pdf') => {
     try {
       const data = type === 'NOVEDADES'
         ? await BatchService.getBatchNovedades(id!)
         : await BatchService.getBatchComprobante(id!);
 
       const shortId = id?.substring(0, 8) ?? 'lote';
-      if (format === 'json') {
+      if (format === 'pdf') {
+        if (type === 'NOVEDADES') {
+          generateNovedadesPdf(data);
+        } else {
+          generateComprobantePdf(data);
+        }
+        toast.success(`Descarga PDF lista.`);
+      } else if (format === 'json') {
         downloadTextFile(`Reporte_${type}_${shortId}.json`, JSON.stringify(data, null, 2), 'application/json');
-      } else if (type === 'NOVEDADES') {
-        downloadTextFile(`Reporte_NOVEDADES_${shortId}.csv`, reporteNovedadesToCsv(data), 'text/csv;charset=utf-8');
+        toast.success(`Descarga JSON lista.`);
       } else {
-        downloadTextFile(`Comprobante_LIQUIDACION_${shortId}.csv`, comprobanteLiquidacionToCsv(data), 'text/csv;charset=utf-8');
+        if (type === 'NOVEDADES') {
+          downloadTextFile(`Reporte_NOVEDADES_${shortId}.csv`, reporteNovedadesToCsv(data), 'text/csv;charset=utf-8');
+        } else {
+          downloadTextFile(`Comprobante_LIQUIDACION_${shortId}.csv`, comprobanteLiquidacionToCsv(data), 'text/csv;charset=utf-8');
+        }
+        toast.success(`Descarga CSV lista.`);
       }
-      toast.success(`Descarga ${format.toUpperCase()} lista.`);
     } catch {
       toast.error('Reporte no disponible para este estado.');
     }
@@ -109,41 +125,43 @@ export function BatchDetail() {
           </div>
           <p className="text-xs font-mono text-gray-400 mt-1">{batch.uuidLote}</p>
         </div>
-        <div className="flex flex-wrap gap-2 justify-end">
+        <div className="flex flex-wrap gap-3 justify-end">
           {batch.estado === 'CERRADO' && (
             <>
-              <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-0.5">
+              <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm">
+                <select
+                  value={novedadesFormat}
+                  onChange={(e) => setNovedadesFormat(e.target.value as 'csv' | 'json' | 'pdf')}
+                  className="px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D1B4B] cursor-pointer hover:bg-gray-100 transition-colors"
+                >
+                  <option value="csv">CSV</option>
+                  <option value="json">JSON</option>
+                  <option value="pdf">PDF</option>
+                </select>
                 <button
                   type="button"
-                  onClick={() => handleDownloadReport('NOVEDADES', 'csv')}
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#0D1B4B] rounded-md hover:bg-gray-50"
+                  onClick={() => handleDownloadReport('NOVEDADES', novedadesFormat)}
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#0D1B4B] rounded-md shadow-md hover:bg-[#1e3a8a] transition-all"
                 >
-                  <Download className="w-4 h-4" /> Novedades .csv
-                </button>
-                <span className="text-gray-200">|</span>
-                <button
-                  type="button"
-                  onClick={() => handleDownloadReport('NOVEDADES', 'json')}
-                  className="px-2 py-2 text-[10px] font-semibold text-gray-500 hover:text-[#0D1B4B]"
-                >
-                  JSON
+                  <Download className="w-4 h-4" /> Novedades
                 </button>
               </div>
-              <div className="flex items-center gap-1 rounded-lg border border-[#0D1B4B] bg-[#0D1B4B] p-0.5">
+              <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-1.5 shadow-sm">
+                <select
+                  value={comprobanteFormat}
+                  onChange={(e) => setComprobanteFormat(e.target.value as 'csv' | 'json' | 'pdf')}
+                  className="px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-50 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#0D1B4B] cursor-pointer hover:bg-gray-100 transition-colors"
+                >
+                  <option value="csv">CSV</option>
+                  <option value="json">JSON</option>
+                  <option value="pdf">PDF</option>
+                </select>
                 <button
                   type="button"
-                  onClick={() => handleDownloadReport('COMPROBANTE', 'csv')}
-                  className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-white rounded-md hover:bg-[#1e3a8a]"
+                  onClick={() => handleDownloadReport('COMPROBANTE', comprobanteFormat)}
+                  className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#0D1B4B] rounded-md shadow-md hover:bg-[#1e3a8a] transition-all"
                 >
-                  <Download className="w-4 h-4" /> Comprobante .csv
-                </button>
-                <span className="text-white/30">|</span>
-                <button
-                  type="button"
-                  onClick={() => handleDownloadReport('COMPROBANTE', 'json')}
-                  className="px-2 py-2 text-[10px] font-semibold text-white/80 hover:text-white"
-                >
-                  JSON
+                  <Download className="w-4 h-4" /> Comprobante
                 </button>
               </div>
             </>
@@ -204,6 +222,7 @@ export function BatchDetail() {
 
       <BatchActions
         estado={batch.estado}
+        userRole={user?.role}
         onValidate={() => setShowActionModal({ type: 'VALIDATE' })}
         onProcess={() => setShowActionModal({ type: 'PROCESS' })}
         onLiquidate={() => setShowActionModal({ type: 'LIQUIDATE' })}
