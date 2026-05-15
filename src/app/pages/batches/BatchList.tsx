@@ -5,53 +5,36 @@ import { useAuth } from '../../context/AuthContext';
 import { BatchService } from '../../services/batchService';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { toast } from 'sonner';
+import { useFetchData } from '../../hooks/useFetchData';
+import { ConsultaLoteResponse, PaginaResponse } from '../../types/responses';
+import { DEFAULT_PAGE_SIZE } from '../../constants';
 
 export function BatchList() {
   const { user } = useAuth();
-  const [batches, setBatches] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [pagination, setPagination] = useState({
-    pagina: 0,
-    totalElementos: 0,
-    totalPaginas: 1
-  });
+  const { data: response, isLoading, execute } = useFetchData<PaginaResponse<ConsultaLoteResponse>>();
 
-  // Filtros estrictos segun Backend (Specification en LotePagoServiceImpl)
-  const [serviceTypeFilter, setServiceTypeFilter] = useState<string>('ALL');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [rucFilter, setRucFilter] = useState<string>(user?.role === 'EMPRESA' ? user.companyRuc : '');
-  const [fechaDesde, setFechaDesde] = useState<string>('');
-  const [fechaHasta, setFechaHasta] = useState<string>('');
+  const [serviceTypeFilter, setServiceTypeFilter] = useState('ALL');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [rucFilter, setRucFilter] = useState(user?.role === 'EMPRESA' ? user.companyRuc || '' : '');
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
 
   const fetchBatches = async (page = 0) => {
-    setIsLoading(true);
+    const params: Record<string, string> = {
+      page: String(page),
+      size: String(DEFAULT_PAGE_SIZE),
+    };
+
+    if (rucFilter) params.rucEmpresa = rucFilter;
+    if (serviceTypeFilter !== 'ALL') params.tipoServicio = serviceTypeFilter;
+    if (statusFilter !== 'ALL') params.estado = statusFilter;
+    if (fechaDesde) params.fechaDesde = `${fechaDesde}T00:00:00-05:00`;
+    if (fechaHasta) params.fechaHasta = `${fechaHasta}T23:59:59-05:00`;
+
     try {
-      const params: any = {
-        pagina: page.toString(),
-        tamano: '10'
-      };
-
-      // Parametros que el Backend espera (mapeados a LotePagoController)
-      if (rucFilter) params.rucEmpresa = rucFilter;
-      if (serviceTypeFilter !== 'ALL') params.tipoServicio = serviceTypeFilter;
-      if (statusFilter !== 'ALL') params.estado = statusFilter;
-      
-      // Formateo de fechas para OffsetDateTime de Java
-      if (fechaDesde) params.fechaDesde = `${fechaDesde}T00:00:00-05:00`;
-      if (fechaHasta) params.fechaHasta = `${fechaHasta}T23:59:59-05:00`;
-
-      const response = await BatchService.getBatches(params);
-      setBatches(response.contenido || []);
-      setPagination({
-        pagina: response.pagina,
-        totalElementos: response.totalElementos,
-        totalPaginas: response.totalPaginas
-      });
-    } catch (error) {
-      console.error('Error fetching batches:', error);
+      await execute(() => BatchService.getBatches(params));
+    } catch {
       toast.error('Error al consultar la base de datos.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -62,9 +45,16 @@ export function BatchList() {
   const clearFilters = () => {
     setServiceTypeFilter('ALL');
     setStatusFilter('ALL');
-    setRucFilter(user?.role === 'EMPRESA' ? user.companyRuc : '');
+    setRucFilter(user?.role === 'EMPRESA' ? user.companyRuc || '' : '');
     setFechaDesde('');
     setFechaHasta('');
+  };
+
+  const batches = response?.contenido || [];
+  const pagination = {
+    pagina: response?.pagina || 0,
+    totalPaginas: response?.totalPaginas || 1,
+    totalElementos: response?.totalElementos || 0,
   };
 
   return (
@@ -94,7 +84,6 @@ export function BatchList() {
         </div>
       </div>
 
-      {/* Panel de Filtros Tecnicos - Basado en Backend */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
@@ -138,6 +127,8 @@ export function BatchList() {
               <option value="VALIDANDO">VALIDANDO</option>
               <option value="VALIDADO">VALIDADO</option>
               <option value="PROCESANDO">PROCESANDO</option>
+              <option value="PROCESADO_TOTAL">PROCESADO TOTAL</option>
+              <option value="PROCESADO_PARCIAL">PROCESADO PARCIAL</option>
               <option value="CERRADO">CERRADO</option>
               <option value="RECHAZADO">RECHAZADO</option>
               <option value="ANULADO">ANULADO</option>
@@ -225,7 +216,7 @@ export function BatchList() {
                       {batch.totalRegistrosDeclarado}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <StatusBadge status={batch.estado} />
+                      {batch.estado && <StatusBadge status={batch.estado} />}
                     </td>
                     <td className="px-6 py-4 text-[11px] text-gray-500">
                       {new Date(batch.fechaRecepcion).toLocaleString('es-EC', { dateStyle: 'short', timeStyle: 'short' })}

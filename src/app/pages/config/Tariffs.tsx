@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { ConfigService } from '../../services/configService';
 import { RefreshCw, CalendarCheck, Layers } from 'lucide-react';
 import { toast } from 'sonner';
+import { TarifaServicioResponse } from '../../types/responses';
 
 export function Tariffs() {
-  const [tariffs, setTariffs] = useState<any[]>([]);
+  const [tariffs, setTariffs] = useState<TarifaServicioResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchTariffs = async () => {
@@ -12,8 +13,7 @@ export function Tariffs() {
     try {
       const data = await ConfigService.getPricingRules();
       setTariffs(Array.isArray(data) ? data : [data]);
-    } catch (error) {
-      console.error('Error fetching tariffs:', error);
+    } catch {
       toast.error('No se pudo cargar el tarifario.');
     } finally {
       setIsLoading(false);
@@ -36,7 +36,6 @@ export function Tariffs() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between border-b pb-4">
         <div>
           <h1 className="text-3xl font-bold text-[#0D1B4B]">Tarifario Oficial</h1>
@@ -62,11 +61,9 @@ export function Tariffs() {
           No hay tarifas activas configuradas en el sistema.
         </div>
       ) : (
-        /* Un bloque por cada tipo de servicio */
         tariffs.map((serviceTariff, sIdx) => (
           <div key={`${serviceTariff.tipoServicio}-${sIdx}`} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             
-            {/* Cabecera del bloque - identifica el servicio y su vigencia */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
               <div className="flex items-center gap-3">
                 <div className={`w-2 h-8 rounded-full ${serviceColor(serviceTariff.tipoServicio)}`} />
@@ -87,7 +84,6 @@ export function Tariffs() {
                 </div>
               </div>
 
-              {/* Fecha de vigencia del esquema completo */}
               <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
                 <CalendarCheck className="w-4 h-4 text-amber-600" />
                 <div className="text-right">
@@ -99,7 +95,6 @@ export function Tariffs() {
               </div>
             </div>
 
-            {/* Tabla de rangos del servicio */}
             <table className="w-full">
               <thead className="bg-[#F8FAFC]">
                 <tr>
@@ -111,7 +106,7 @@ export function Tariffs() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {(serviceTariff.rangos || []).map((range: any, rIdx: number) => (
+                {(serviceTariff.rangos || []).map((range: { rangoDesde: number; rangoHasta: number | null; tarifaUnitaria: number }, rIdx: number) => (
                   <tr key={rIdx} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-xs font-bold text-gray-400">
                       TRAMO {rIdx + 1}
@@ -141,7 +136,6 @@ export function Tariffs() {
         ))
       )}
 
-      {/* Nota de Auditoría */}
       {!isLoading && tariffs.length > 0 && (
         <div className="bg-blue-50 border-l-4 border-[#0D1B4B] p-4 rounded-r-lg">
           <p className="text-xs text-blue-900 leading-relaxed">

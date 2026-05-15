@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import { ConfigService } from '../../services/configService';
-import { RefreshCw, Clock, AlertTriangle, Globe, CalendarRange, Info } from 'lucide-react';
+import { RefreshCw, Clock, Globe, CalendarRange, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
+interface SystemParams {
+  horaCorteProceso?: string;
+  horaInicioLotesEncolados?: string;
+}
+
 export function SystemParameters() {
-  const [params, setParams] = useState<any>(null);
+  const [params, setParams] = useState<SystemParams | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchParams = async () => {
@@ -12,8 +17,7 @@ export function SystemParameters() {
     try {
       const data = await ConfigService.getOperatingHours();
       setParams(data);
-    } catch (error) {
-      console.error('Error fetching system parameters:', error);
+    } catch {
       toast.error('No se pudieron cargar los parámetros del sistema.');
     } finally {
       setIsLoading(false);
@@ -40,7 +44,7 @@ export function SystemParameters() {
       valueColor: 'text-amber-700',
     },
     {
-      icon: <AlertTriangle className="w-5 h-5 text-red-500" />,
+      icon: <Info className="w-5 h-5 text-red-500" />,
       label: 'Ventana de Duplicidad',
       value: `${params.ventanaDuplicidadDias} día(s)`,
       description: 'Período en el que el sistema rechaza automáticamente lotes idénticos para evitar doble pago.',
@@ -59,7 +63,6 @@ export function SystemParameters() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between border-b pb-4">
         <div>
           <h1 className="text-3xl font-bold text-[#0D1B4B]">Parámetros Operativos</h1>
@@ -75,19 +78,6 @@ export function SystemParameters() {
         </button>
       </div>
 
-      {/* Aviso de Solo Lectura */}
-      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-        <div>
-          <p className="text-sm font-bold text-amber-800">Solo Lectura</p>
-          <p className="text-sm text-amber-700">
-            Estos parámetros son configurados directamente en la base de datos del Switch. 
-            Cualquier modificación debe ser coordinada con el equipo técnico y aprobada por operaciones.
-          </p>
-        </div>
-      </div>
-
-      {/* Cards de Parámetros */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1,2,3,4].map(i => (
@@ -118,7 +108,6 @@ export function SystemParameters() {
             ))}
           </div>
 
-          {/* Mensaje del sistema si lo hay */}
           {params.mensaje && (
             <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-lg p-4">
               <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
@@ -128,11 +117,10 @@ export function SystemParameters() {
         </>
       )}
 
-      {/* Nota de Auditoría */}
       <div className="bg-gray-50 border-l-4 border-gray-300 p-4 rounded-r-lg">
         <p className="text-xs text-gray-600 leading-relaxed">
-          <strong>Nota:</strong> Los parámetros aquí mostrados son leídos en tiempo real desde la tabla 
-          <code className="mx-1 bg-gray-100 px-1 rounded">PARAMETRO_SWITCH</code> de la base de datos PostgreSQL del Switch.
+          <strong>Fuente:</strong> Valores obtenidos mediante <code className="mx-1 bg-gray-100 px-1 rounded">GET /api/v1/pagos-masivos/horarios-corte</code>. 
+          El backend los extrae de la configuración operativa vigente del Switch.
         </p>
       </div>
     </div>

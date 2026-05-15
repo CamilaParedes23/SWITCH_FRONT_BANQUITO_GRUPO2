@@ -4,12 +4,8 @@ import {
   FileText,
   Upload,
   Settings,
-  Clock,
-  Mail,
   FileSpreadsheet,
-  Shield,
   Activity,
-  DollarSign,
   List,
   Building2,
 } from 'lucide-react';
@@ -48,28 +44,10 @@ const menuItems: MenuItem[] = [
     roles: ['OPERADOR', 'AUDITOR', 'ADMIN'],
   },
   {
-    path: '/queue',
-    label: 'Cola de Procesamiento',
-    icon: <Clock className="w-5 h-5" />,
-    roles: ['OPERADOR', 'ADMIN'],
-  },
-  {
-    path: '/notifications',
-    label: 'Notificaciones',
-    icon: <Mail className="w-5 h-5" />,
-    roles: ['OPERADOR', 'AUDITOR', 'ADMIN'],
-  },
-  {
     path: '/config/services',
     label: 'Tipos de Servicio',
     icon: <Settings className="w-5 h-5" />,
     roles: ['OPERADOR', 'ADMIN'],
-  },
-  {
-    path: '/config/limits',
-    label: 'Límites',
-    icon: <DollarSign className="w-5 h-5" />,
-    roles: ['EMPRESA', 'OPERADOR', 'ADMIN'],
   },
   {
     path: '/config/tariffs',
@@ -82,12 +60,6 @@ const menuItems: MenuItem[] = [
     label: 'Parámetros',
     icon: <Settings className="w-5 h-5" />,
     roles: ['ADMIN'],
-  },
-  {
-    path: '/audit',
-    label: 'Auditoría',
-    icon: <Shield className="w-5 h-5" />,
-    roles: ['AUDITOR', 'ADMIN'],
   },
   {
     path: '/health',

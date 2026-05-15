@@ -28,7 +28,7 @@ export function Header() {
           {user.role === 'EMPRESA' && user.companyName && (
             <div>
               <h2 className="text-xl font-bold text-gray-900">{user.companyName}</h2>
-              <p className="text-sm text-gray-600">RUC: {user.companyRuc}</p>
+              {user.companyRuc && <p className="text-sm text-gray-600">RUC: {user.companyRuc}</p>}
             </div>
           )}
           {user.role !== 'EMPRESA' && (

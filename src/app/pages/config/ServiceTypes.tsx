@@ -13,8 +13,7 @@ export function ServiceTypes() {
     try {
       const data = await CatalogService.getServiceTypes();
       setServices(data);
-    } catch (error) {
-      console.error('Error fetching service types:', error);
+    } catch {
       toast.error('No se pudo conectar con el backend. Verifique que el servidor esté activo.');
     } finally {
       setIsLoading(false);

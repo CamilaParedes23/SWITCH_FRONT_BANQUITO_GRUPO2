@@ -2,16 +2,20 @@ import { useState, useEffect } from 'react';
 import { ConfigService } from '../../services/configService';
 import { RefreshCw, CheckCircle, XCircle, AlertCircle, Activity, Database, Server, Mail, Wifi } from 'lucide-react';
 
+interface SystemParams {
+  horaCorteProceso?: string;
+  horaInicioLotesEncolados?: string;
+}
+
 export function SystemHealth() {
   const [isUp, setIsUp] = useState<boolean | null>(null);
-  const [params, setParams] = useState<any>(null);
+  const [params, setParams] = useState<SystemParams | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [lastCheck, setLastCheck] = useState<string>('');
 
   const fetchHealth = async () => {
     setIsLoading(true);
     try {
-      // Usamos el apiClient (con CORS habilitado) para verificar la salud del servidor
       const data = await ConfigService.getSystemHealth();
       setIsUp(true);
       setParams(data);
@@ -86,7 +90,6 @@ export function SystemHealth() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between border-b pb-4">
         <div>
           <h1 className="text-3xl font-bold text-[#0D1B4B]">Estado del Sistema</h1>
@@ -107,7 +110,6 @@ export function SystemHealth() {
         </button>
       </div>
 
-      {/* Estado Global */}
       <div className={`rounded-xl border-2 p-6 flex items-center gap-5 ${statusBg[globalStatus as keyof typeof statusBg]}`}>
         {isLoading ? (
           <RefreshCw className="w-10 h-10 animate-spin text-gray-300" />
@@ -129,7 +131,6 @@ export function SystemHealth() {
         </div>
       </div>
 
-      {/* Componentes */}
       <div>
         <h2 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Componentes del Sistema</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -157,7 +158,6 @@ export function SystemHealth() {
         </div>
       </div>
 
-      {/* Nota */}
       <div className="bg-gray-50 border-l-4 border-gray-300 p-4 rounded-r-lg">
         <p className="text-xs text-gray-600 leading-relaxed">
           <strong>Fuente:</strong> El estado se verifica consultando la API del Switch en{' '}

@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Upload, CheckCircle, AlertTriangle, RefreshCw, Clock } from 'lucide-react';
+import { Upload, CheckCircle, AlertTriangle, RefreshCw, Clock, Info, FileText } from 'lucide-react';
 import { ConfigService, CatalogService } from '../../services/configService';
 import { BatchService } from '../../services/batchService';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'sonner';
+import { ServiceTypeConfig } from '../../types';
 
 export function BatchUpload() {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  const [serviceTypes, setServiceTypes] = useState<any[]>([]);
+  const [serviceTypes, setServiceTypes] = useState<ServiceTypeConfig[]>([]);
   const [selectedService, setSelectedService] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -25,7 +26,6 @@ export function BatchUpload() {
   useEffect(() => {
     const initData = async () => {
       try {
-        // 1. Cargar Horarios Reales
         const cutoffData = await ConfigService.getCutoffTimes();
         const now = new Date();
         const [hours, minutes] = cutoffData.horaCorteProceso.split(':').map(Number);
@@ -38,7 +38,6 @@ export function BatchUpload() {
           isPastCutoff: now > cutoff
         });
 
-        // 2. Cargar Catalogo de Servicios Real
         try {
           const types = await CatalogService.getServiceTypes();
           if (types && types.length > 0) {
@@ -47,18 +46,16 @@ export function BatchUpload() {
           } else {
             throw new Error('Catalogo vacio');
           }
-        } catch (e) {
-          console.warn('Usando catalogo de emergencia (Backend no respondio tipos):', e);
-          const fallbackTypes = [
-            { codigo: 'NOM', nombre: 'Pago de Nómina', descripcion: 'Sueldos y beneficios' },
-            { codigo: 'PRV', nombre: 'Pago a Proveedores', descripcion: 'Obligaciones comerciales' }
+        } catch {
+          const fallbackTypes: ServiceTypeConfig[] = [
+            { codigo: 'NOM', nombre: 'Pago de Nómina', descripcion: 'Sueldos y beneficios', estado: 'ACTIVO' },
+            { codigo: 'PRV', nombre: 'Pago a Proveedores', descripcion: 'Obligaciones comerciales', estado: 'ACTIVO' }
           ];
           setServiceTypes(fallbackTypes);
           setSelectedService('NOM');
         }
 
-      } catch (error) {
-        console.error('Error init BatchUpload:', error);
+      } catch {
       }
     };
     initData();
@@ -81,16 +78,15 @@ export function BatchUpload() {
       formData.append('rucEmpresa', user?.companyRuc || '');
 
       const response = await BatchService.uploadBatch(formData);
-      
-      // Persistencia inteligente de la cuenta (ya que el DTO de consulta no la trae)
       if (response.uuidLote) {
         sessionStorage.setItem(`account_${response.uuidLote}`, accountNumber);
       }
 
       toast.success(`Lote ${response.uuidLote.substring(0,8)}... cargado correctamente.`);
       setTimeout(() => navigate('/batches'), 1500);
-    } catch (error: any) {
-      toast.error(error.message || 'Error al procesar el archivo.');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Error al procesar el archivo.';
+      toast.error(message);
     } finally {
       setIsUploading(false);
     }
@@ -105,7 +101,6 @@ export function BatchUpload() {
         </div>
       </div>
 
-      {/* Información de Corte Real */}
       <div className={`p-5 rounded-xl border flex items-center gap-4 transition-all ${
         cutoffInfo.isPastCutoff ? 'bg-orange-50 border-orange-100' : 'bg-blue-50 border-blue-100'
       }`}>
@@ -120,6 +115,57 @@ export function BatchUpload() {
           </p>
         </div>
       </div>
+
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
+        <p className="text-sm text-blue-800 font-bold flex items-center gap-2">
+          <Info className="w-4 h-4" /> Nota Importante
+        </p>
+        <p className="text-xs text-blue-700 mt-1 leading-relaxed">
+          El <strong>Tipo de Servicio</strong> y la <strong>Cuenta Matriz de Cargo</strong> se leen directamente desde la cabecera del archivo cargado (línea H). 
+          Los valores seleccionados en este formulario son informativos y deben coincidir con el contenido del archivo.
+        </p>
+      </div>
+
+      <details className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <summary className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest cursor-pointer hover:bg-gray-50 select-none flex items-center gap-2">
+          <FileText className="w-4 h-4" /> Formato Requerido del Archivo (CSV/TXT)
+        </summary>
+        <div className="px-6 pb-6 space-y-4 text-sm text-gray-700">
+          <p className="text-xs text-gray-500">El archivo debe contener exactamente tres bloques estructurados:</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+              <p className="text-[10px] font-bold text-blue-600 uppercase mb-2">1. Cabecera (1 línea · prefijo H)</p>
+              <ul className="text-xs space-y-1 text-gray-600">
+                <li>RUC Emisora</li>
+                <li>Tipo de Servicio (NOM / PRV)</li>
+                <li>Fecha/Hora Generación</li>
+                <li>Cuenta Matriz de Cargo</li>
+                <li>Total de Registros</li>
+                <li>Monto Total de Control</li>
+              </ul>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+              <p className="text-[10px] font-bold text-green-600 uppercase mb-2">2. Detalle (N líneas · prefijo D)</p>
+              <ul className="text-xs space-y-1 text-gray-600">
+                <li>Secuencial</li>
+                <li>Identificación Beneficiario</li>
+                <li>Nombre Beneficiario</li>
+                <li>Cuenta Destino</li>
+                <li>Monto a Transferir</li>
+                <li>Referencia / Concepto</li>
+                <li>Correo de Notificación</li>
+              </ul>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+              <p className="text-[10px] font-bold text-amber-600 uppercase mb-2">3. Pie de Control (1 línea · prefijo P)</p>
+              <ul className="text-xs space-y-1 text-gray-600">
+                <li>Hash / Código de Seguridad</li>
+                <li>Suma de Verificación (montos + registros)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </details>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
