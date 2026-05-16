@@ -104,16 +104,16 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Volumen Total</p>
-              <p className="text-xl font-bold text-green-600 mt-2">
+              <p className="text-lg font-bold text-green-600 mt-1">
                 ${stats.montoTotal.toLocaleString('es-EC', { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <div className="bg-green-50 p-3 rounded-full">
-              <DollarSign className="w-6 h-6 text-green-600" />
+            <div className="bg-green-50 p-2 rounded-full flex-shrink-0 mt-0.5">
+              <DollarSign className="w-4 h-4 text-green-600" />
             </div>
           </div>
         </div>
