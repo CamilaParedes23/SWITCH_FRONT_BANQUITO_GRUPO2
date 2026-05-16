@@ -36,6 +36,8 @@ export function StatusBadge({ status, size = 'md', showIcon = false }: StatusBad
         return { color: 'bg-green-500 text-white border-green-600', label: 'PROCESADO TOTAL' };
       case 'CERRADO':
         return { color: 'bg-green-700 text-white border-green-800', label: 'CERRADO' };
+      case 'FALLIDO':
+        return { color: 'bg-red-700 text-white border-red-800', label: 'FALLIDO' };
       case 'ANULADO':
         return {
           color: 'bg-gray-400 text-gray-800 border-gray-500 line-through',

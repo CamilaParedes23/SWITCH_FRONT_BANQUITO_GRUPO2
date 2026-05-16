@@ -51,6 +51,7 @@ export function BatchDetail() {
 
   const handleAction = async () => {
     if (!id || isActionLoading) return;
+    console.log('handleAction - id:', id, 'type:', showActionModal.type);
     setIsActionLoading(true);
     try {
       if (showActionModal.type === 'VALIDATE') {
@@ -62,7 +63,10 @@ export function BatchDetail() {
           toast.success('Archivo validado exitosamente. Sin errores estructurales.');
         }
       }
-      if (showActionModal.type === 'PROCESS') await BatchService.processBatch(id);
+      if (showActionModal.type === 'PROCESS') {
+        console.log('Processing batch with UUID:', id);
+        await BatchService.processBatch(id);
+      }
       if (showActionModal.type === 'LIQUIDATE') {
         const res = await BatchService.liquidateBatch(id);
         setLiquidationResult(res);
