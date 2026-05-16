@@ -4,17 +4,20 @@ interface BatchActionsProps {
   estado?: string;
   userRole?: string;
   isLoading?: boolean;
+  successfulLinesCount?: number;
   onValidate: () => void;
   onProcess: () => void;
   onLiquidate: () => void;
   onAnnul: () => void;
 }
 
-export function BatchActions({ estado, userRole, isLoading = false, onValidate, onProcess, onLiquidate, onAnnul }: BatchActionsProps) {
+export function BatchActions({ estado, userRole, isLoading = false, successfulLinesCount = 0, onValidate, onProcess, onLiquidate, onAnnul }: BatchActionsProps) {
   const canValidate = userRole === 'OPERADOR' || userRole === 'ADMIN';
   const canProcess = userRole === 'OPERADOR' || userRole === 'ADMIN';
   const canLiquidate = userRole === 'OPERADOR' || userRole === 'ADMIN';
   const canAnnul = userRole === 'OPERADOR' || userRole === 'ADMIN';
+  
+  const hasSuccessfulLines = successfulLinesCount > 0;
 
   const handleValidate = () => {
     if (!isLoading) onValidate();
@@ -84,7 +87,7 @@ export function BatchActions({ estado, userRole, isLoading = false, onValidate, 
             )}
           </button>
         )}
-        {['PROCESADO_TOTAL', 'PROCESADO_PARCIAL'].includes(estado || '') && canLiquidate && (
+        {['PROCESADO_TOTAL', 'PROCESADO_PARCIAL'].includes(estado || '') && canLiquidate && hasSuccessfulLines && (
           <button
             onClick={handleLiquidate}
             disabled={isLoading}

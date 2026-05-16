@@ -240,6 +240,7 @@ export function BatchDetail() {
         estado={batch.estado}
         userRole={user?.role}
         isLoading={isActionLoading}
+        successfulLinesCount={successfulLines || 0}
         onValidate={() => setShowActionModal({ type: 'VALIDATE' })}
         onProcess={() => setShowActionModal({ type: 'PROCESS' })}
         onLiquidate={() => setShowActionModal({ type: 'LIQUIDATE' })}
