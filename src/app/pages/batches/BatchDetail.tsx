@@ -47,9 +47,11 @@ export function BatchDetail() {
   const [annulReason, setAnnulReason] = useState('');
   const [novedadesFormat, setNovedadesFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
   const [comprobanteFormat, setComprobanteFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   const handleAction = async () => {
-    if (!id) return;
+    if (!id || isActionLoading) return;
+    setIsActionLoading(true);
     try {
       if (showActionModal.type === 'VALIDATE') {
         const res = await BatchService.validateBatch(id);
@@ -76,8 +78,22 @@ export function BatchDetail() {
       setShowActionModal({ type: null });
       fetchData();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Error en la operación bancaria.';
-      toast.error(message);
+      const errorMessage = error instanceof Error ? error.message : 'Error en la operación bancaria.';
+      
+      // Manejo de errores amigables para doble click y conflictos
+      if (errorMessage.includes('409') || errorMessage.includes('conflict') || errorMessage.includes('ya está en proceso')) {
+        toast.error('La operación ya está en proceso. Por favor espere a que termine.');
+      } else if (errorMessage.includes('500') || errorMessage.includes('internal server') || errorMessage.includes('error del servidor')) {
+        toast.error('El servidor está procesando la solicitud. Por favor espere unos segundos.');
+      } else if (errorMessage.includes('404') || errorMessage.includes('no encontrado')) {
+        toast.error('Lote no encontrado. Por favor recargue la página.');
+      } else if (errorMessage.includes('400') || errorMessage.includes('solicitud')) {
+        toast.error('La solicitud no es válida. Verifique el estado del lote.');
+      } else {
+        toast.error(errorMessage);
+      }
+    } finally {
+      setIsActionLoading(false);
     }
   };
 
@@ -223,6 +239,7 @@ export function BatchDetail() {
       <BatchActions
         estado={batch.estado}
         userRole={user?.role}
+        isLoading={isActionLoading}
         onValidate={() => setShowActionModal({ type: 'VALIDATE' })}
         onProcess={() => setShowActionModal({ type: 'PROCESS' })}
         onLiquidate={() => setShowActionModal({ type: 'LIQUIDATE' })}
