@@ -345,17 +345,23 @@ export function generateNovedadesPdf(data: ReporteNovedadesApi): void {
   
   let y = 150;
   for (const l of data.lineas ?? []) {
-    if (y > 250) {
+    // Calcular altura del recuadro según si hay error
+    const errorText = l.codigoError ? `Error: ${l.codigoError} - ${l.mensajeError ?? ''}` : '';
+    const splitError = errorText ? doc.splitTextToSize(errorText, 170) : [];
+    const errorLines = splitError.length || 0;
+    const boxHeight = 30 + (errorLines > 0 ? 8 + (errorLines - 1) * 5 : 0);
+    
+    if (y + boxHeight > 260) {
       doc.addPage();
       y = 20;
     }
     
     // Fondo para cada línea
     doc.setFillColor(l.estado === 'EXITOSA' ? '#F0FFF0' : '#FFF0F0');
-    doc.roundedRect(15, y - 4, 180, 32, 2, 2, 'F');
+    doc.roundedRect(15, y - 4, 180, boxHeight, 2, 2, 'F');
     doc.setDrawColor(azulOscuro);
     doc.setLineWidth(0.2);
-    doc.roundedRect(15, y - 4, 180, 32, 2, 2, 'S');
+    doc.roundedRect(15, y - 4, 180, boxHeight, 2, 2, 'S');
     
     doc.setTextColor(azulOscuro);
     doc.setFont('helvetica', 'bold');
@@ -370,11 +376,10 @@ export function generateNovedadesPdf(data: ReporteNovedadesApi): void {
     if (l.codigoError) {
       doc.setTextColor(200, 0, 0);
       doc.setFont('helvetica', 'bold');
-      doc.text(`Error: ${l.codigoError} - ${l.mensajeError ?? ''}`, 20, y + 30);
-      y += 42;
-    } else {
-      y += 35;
+      doc.text(splitError, 20, y + 30);
     }
+    
+    y += boxHeight + 8;
   }
   
   // Pie de página
