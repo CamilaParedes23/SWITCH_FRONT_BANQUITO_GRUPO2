@@ -9,6 +9,7 @@ export type BatchStatus =
   | 'PROCESANDO'
   | 'PROCESADO_PARCIAL'
   | 'PROCESADO_TOTAL'
+  | 'FALLIDO'
   | 'CERRADO'
   | 'ANULADO';
 

@@ -39,7 +39,7 @@ function calculateDashboardStats(batches: ConsultaLoteResponse[]): DashboardStat
       if (['VALIDANDO', 'PROCESANDO'].includes(b.estado)) acc.enProceso++;
       if (b.estado === 'ANULADO') acc.anulados++;
       if (b.estado === 'CERRADO') acc.cerrados++;
-      if (b.estado === 'RECHAZADO') acc.rechazados++;
+      if (b.estado === 'RECHAZADO' || b.estado === 'FALLIDO') acc.rechazados++;
       if (['PROCESADO_TOTAL', 'PROCESADO_PARCIAL'].includes(b.estado)) acc.procesados++;
       return acc;
     },

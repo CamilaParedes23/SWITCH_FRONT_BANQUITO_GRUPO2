@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: 'empresa.user',
     role: 'EMPRESA',
     companyName: 'Corporación Industrial S.A.',
-    companyRuc: '1790012345001',
+    companyRuc: '1790000001001',
     email: 'admin@corporacion.com',
   });
 
@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       username,
       role: 'EMPRESA',
       companyName: 'Corporación Industrial S.A.',
-      companyRuc: '1790012345001',
+      companyRuc: '1790000001001',
       email: 'admin@corporacion.com',
     };
     setUser(mockUser);
@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...user,
         role,
         companyName: role === 'EMPRESA' ? 'Corporación Industrial S.A.' : undefined,
-        companyRuc: role === 'EMPRESA' ? '1790012345001' : undefined,
+        companyRuc: role === 'EMPRESA' ? '1790000001001' : undefined,
       });
     }
   };

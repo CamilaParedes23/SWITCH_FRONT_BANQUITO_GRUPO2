@@ -131,6 +131,7 @@ export function BatchList() {
               <option value="PROCESADO_PARCIAL">PROCESADO PARCIAL</option>
               <option value="CERRADO">CERRADO</option>
               <option value="RECHAZADO">RECHAZADO</option>
+              <option value="FALLIDO">FALLIDO</option>
               <option value="ANULADO">ANULADO</option>
             </select>
           </div>
