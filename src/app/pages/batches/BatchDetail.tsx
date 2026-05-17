@@ -43,7 +43,7 @@ export function BatchDetail() {
   } = useBatchDetail(id);
 
   const [activeTab, setActiveTab] = useState<'lines' | 'settlement' | 'novedades' | 'comprobante'>('lines');
-  const [showActionModal, setShowActionModal] = useState<{ type: 'VALIDATE' | 'PROCESS' | 'LIQUIDATE' | 'ANNUL' | null }>({ type: null });
+  const [showActionModal, setShowActionModal] = useState<{ type: 'VALIDATE' | 'PROCESS_AUTO' | 'ANNUL' | null }>({ type: null });
   const [annulReason, setAnnulReason] = useState('');
   const [novedadesFormat, setNovedadesFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
   const [comprobanteFormat, setComprobanteFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
@@ -63,18 +63,22 @@ export function BatchDetail() {
           toast.success('Archivo validado exitosamente. Sin errores estructurales.');
         }
       }
-      if (showActionModal.type === 'PROCESS') {
-        console.log('Processing batch with UUID:', id);
-        await BatchService.processBatch(id);
-      }
-      if (showActionModal.type === 'LIQUIDATE') {
-        const res = await BatchService.liquidateBatch(id);
-        setLiquidationResult(res);
-        void BatchService.getBatchNovedades(id)
-          .then(() => {
-            toast.message('Notificaciones registradas al generar el reporte de novedades.');
-          })
-          .catch(() => {});
+      if (showActionModal.type === 'PROCESS_AUTO') {
+        // Caso 1: Estado VALIDADO → Procesar + Liquidar
+        if (batch.estado === 'VALIDADO') {
+          // Paso 1: Procesar lote (procesamiento financiero)
+          const processRes = await BatchService.processBatch(id);
+          const estadoProcesamiento = processRes?.estado;
+
+          // Paso 2: Liquidar solo si fue PROCESADO_TOTAL o PROCESADO_PARCIAL (con al menos 1 exitosa)
+          if (estadoProcesamiento === 'PROCESADO_TOTAL' || estadoProcesamiento === 'PROCESADO_PARCIAL') {
+            await BatchService.liquidateBatch(id);
+          }
+        }
+        // Caso 2: Estado PROCESADO_PARCIAL o PROCESADO_TOTAL → Solo Liquidar (reintento)
+        else if (batch.estado === 'PROCESADO_PARCIAL' || batch.estado === 'PROCESADO_TOTAL') {
+          await BatchService.liquidateBatch(id);
+        }
       }
       if (showActionModal.type === 'ANNUL') await BatchService.annulBatch(id, annulReason);
 
@@ -83,7 +87,7 @@ export function BatchDetail() {
       fetchData();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error en la operación bancaria.';
-      
+
       // Manejo de errores amigables para doble click y conflictos
       if (errorMessage.includes('409') || errorMessage.includes('conflict') || errorMessage.includes('ya está en proceso')) {
         toast.error('La operación ya está en proceso. Por favor espere a que termine.');
@@ -246,8 +250,7 @@ export function BatchDetail() {
         isLoading={isActionLoading}
         successfulLinesCount={successfulLines || 0}
         onValidate={() => setShowActionModal({ type: 'VALIDATE' })}
-        onProcess={() => setShowActionModal({ type: 'PROCESS' })}
-        onLiquidate={() => setShowActionModal({ type: 'LIQUIDATE' })}
+        onProcessAuto={() => setShowActionModal({ type: 'PROCESS_AUTO' })}
         onAnnul={() => setShowActionModal({ type: 'ANNUL' })}
       />
 
@@ -280,13 +283,14 @@ export function BatchDetail() {
 
       <ConfirmModal
         isOpen={showActionModal.type !== null}
-        title={showActionModal.type === 'PROCESS' ? 'Ejecución de Dispersión' : 'Confirmar Acción'}
+        title={showActionModal.type === 'PROCESS_AUTO' ? (batch.estado === 'VALIDADO' ? 'Procesamiento Automático del Lote' : 'Liquidación del Lote') : showActionModal.type === 'VALIDATE' ? 'Validación Estructural' : 'Confirmar Acción'}
         variant={showActionModal.type === 'ANNUL' ? 'danger' : 'warning'}
         confirmText="Confirmar"
         message={
           <div className="space-y-4 text-gray-600">
-            {showActionModal.type === 'PROCESS' && "Está a punto de ejecutar la transferencia masiva de fondos. Esta acción afectará los saldos del Core Bancario inmediatamente."}
-            {showActionModal.type === 'LIQUIDATE' && "Se procederá al cobro de comisiones e IVA. El lote pasará a estado CERRADO."}
+            {showActionModal.type === 'VALIDATE' && "El Switch validará la estructura del archivo (sumatorias, RUC, duplicidad). Esta acción no afecta los saldos del Core Bancario."}
+            {showActionModal.type === 'PROCESS_AUTO' && batch.estado === 'VALIDADO' && "El Switch ejecutará automáticamente: Procesamiento Financiero → Cálculo de Tarifaje → Liquidación Contable. Esta acción afectará los saldos del Core Bancario."}
+            {showActionModal.type === 'PROCESS_AUTO' && (batch.estado === 'PROCESADO_PARCIAL' || batch.estado === 'PROCESADO_TOTAL') && "El Switch ejecutará: Cálculo de Tarifaje → Liquidación Contable. Esta acción afectará los saldos del Core Bancario."}
             {showActionModal.type === 'ANNUL' && "Ingrese el motivo de anulación para el registro oficial de auditoría:"}
             {showActionModal.type === 'ANNUL' && (
               <textarea className="w-full p-3 border rounded-lg text-sm font-sans" rows={3} value={annulReason} onChange={(e) => setAnnulReason(e.target.value)} placeholder="Motivo de la anulación..." />

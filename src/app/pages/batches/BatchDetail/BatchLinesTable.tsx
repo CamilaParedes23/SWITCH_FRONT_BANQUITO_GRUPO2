@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 import { StatusBadge } from '../../../components/shared/StatusBadge';
 import { LineaPagoResponse } from '../../../types/responses';
 import { LineStatus } from '../../../types';
@@ -40,8 +40,17 @@ export function BatchLinesTable({ lines }: BatchLinesTableProps) {
               <td className="py-4 text-center">
                 <StatusBadge status={l.estado as LineStatus} size="sm" />
               </td>
-              <td className="py-4 text-xs italic text-gray-400">
-                {l.mensajeError || (l.estado === 'EXITOSA' ? <CheckCircle2 className="w-4 h-4 text-green-500 inline" /> : '-')}
+              <td className="py-4 text-xs">
+                {l.mensajeError ? (
+                  <span className="text-red-600 font-semibold flex items-center gap-1">
+                    <XCircle className="w-3 h-3" />
+                    {l.mensajeError}
+                  </span>
+                ) : l.estado === 'EXITOSA' ? (
+                  <CheckCircle2 className="w-4 h-4 text-green-500 inline" />
+                ) : (
+                  '-'
+                )}
               </td>
             </tr>
           ))}

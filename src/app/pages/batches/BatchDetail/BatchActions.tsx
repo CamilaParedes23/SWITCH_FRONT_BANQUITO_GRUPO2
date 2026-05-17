@@ -1,4 +1,4 @@
-import { ShieldCheck, Play, Receipt, AlertCircle } from 'lucide-react';
+import { ShieldCheck, AlertCircle, Zap } from 'lucide-react';
 
 interface BatchActionsProps {
   estado?: string;
@@ -6,36 +6,28 @@ interface BatchActionsProps {
   isLoading?: boolean;
   successfulLinesCount?: number;
   onValidate: () => void;
-  onProcess: () => void;
-  onLiquidate: () => void;
+  onProcessAuto: () => void;
   onAnnul: () => void;
 }
 
-export function BatchActions({ estado, userRole, isLoading = false, successfulLinesCount = 0, onValidate, onProcess, onLiquidate, onAnnul }: BatchActionsProps) {
+export function BatchActions({ estado, userRole, isLoading = false, successfulLinesCount = 0, onValidate, onProcessAuto, onAnnul }: BatchActionsProps) {
   const canValidate = userRole === 'OPERADOR' || userRole === 'ADMIN';
-  const canProcess = userRole === 'OPERADOR' || userRole === 'ADMIN';
-  const canLiquidate = userRole === 'OPERADOR' || userRole === 'ADMIN';
+  const canProcessAuto = userRole === 'OPERADOR' || userRole === 'ADMIN';
   const canAnnul = userRole === 'OPERADOR' || userRole === 'ADMIN';
-  
-  const hasSuccessfulLines = successfulLinesCount > 0;
 
   const handleValidate = () => {
     if (!isLoading) onValidate();
   };
 
-  const handleProcess = () => {
-    if (!isLoading) onProcess();
-  };
-
-  const handleLiquidate = () => {
-    if (!isLoading) onLiquidate();
+  const handleProcessAuto = () => {
+    if (!isLoading) onProcessAuto();
   };
 
   const handleAnnul = () => {
     if (!isLoading) onAnnul();
   };
-  
-  const hasAnyAction = canValidate || canProcess || canLiquidate || canAnnul;
+
+  const hasAnyAction = canValidate || canProcessAuto || canAnnul;
   
   if (!hasAnyAction) return null;
   
@@ -45,7 +37,7 @@ export function BatchActions({ estado, userRole, isLoading = false, successfulLi
         <ShieldCheck className="w-4 h-4" /> Acciones de Control Operativo
       </h3>
       <div className="flex flex-wrap gap-4">
-        {(estado === 'RECIBIDO' || estado === 'ENCOLADO') && canValidate && (
+        {estado === 'ENCOLADO' && canValidate && (
           <button
             onClick={handleValidate}
             disabled={isLoading}
@@ -61,16 +53,16 @@ export function BatchActions({ estado, userRole, isLoading = false, successfulLi
               </>
             ) : (
               <>
-                <ShieldCheck className="w-5 h-5" /> Verificar Archivo
+                <ShieldCheck className="w-5 h-5" /> Validar
               </>
             )}
           </button>
         )}
-        {estado === 'VALIDADO' && canProcess && (
+        {(estado === 'VALIDADO' || estado === 'PROCESADO_PARCIAL' || estado === 'PROCESADO_TOTAL') && canProcessAuto && (
           <button
-            onClick={handleProcess}
+            onClick={handleProcessAuto}
             disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-3 bg-[#C9A84C] text-[#0D1B4B] rounded-lg font-bold shadow-lg hover:bg-[#b8973b] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex items-center gap-2 px-8 py-3 bg-[#C9A84C] text-[#0D1B4B] rounded-lg font-bold shadow-lg hover:bg-[#b8973b] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {isLoading ? (
               <>
@@ -78,32 +70,11 @@ export function BatchActions({ estado, userRole, isLoading = false, successfulLi
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Ejecutando...
+                Procesando...
               </>
             ) : (
               <>
-                <Play className="w-5 h-5" /> Ejecutar Pagos
-              </>
-            )}
-          </button>
-        )}
-        {['PROCESADO_TOTAL', 'PROCESADO_PARCIAL'].includes(estado || '') && canLiquidate && hasSuccessfulLines && (
-          <button
-            onClick={handleLiquidate}
-            disabled={isLoading}
-            className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg font-bold shadow-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Cobrando...
-              </>
-            ) : (
-              <>
-                <Receipt className="w-5 h-5" /> Cobrar Comisiones
+                <Zap className="w-5 h-5" /> {estado === 'VALIDADO' ? 'Procesar Lote' : 'Liquidar'}
               </>
             )}
           </button>
