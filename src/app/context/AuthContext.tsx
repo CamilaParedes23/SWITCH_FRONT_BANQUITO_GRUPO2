@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { User, UserRole } from '../types';
+import { AuthService } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
@@ -12,24 +13,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>({
-    id: '1',
-    username: 'empresa.user',
+    id: 'dev-user',
+    username: 'empresa001',
     role: 'EMPRESA',
-    companyName: 'Corporación Industrial S.A.',
+    companyName: 'Empresa de Desarrollo',
     companyRuc: '1790000001001',
-    email: 'admin@corporacion.com',
+    email: 'dev@banquito.com',
   });
 
   const login = async (username: string, password: string) => {
-    const mockUser: User = {
-      id: '1',
-      username,
-      role: 'EMPRESA',
-      companyName: 'Corporación Industrial S.A.',
-      companyRuc: '1790000001001',
-      email: 'admin@corporacion.com',
-    };
-    setUser(mockUser);
+    try {
+      const response = await AuthService.login(username, password);
+      
+      const userData: User = {
+        id: response.id || '1',
+        username: response.usuario || username,
+        role: response.rolSwitch || 'EMPRESA',
+        companyName: response.nombreEmpresa || '',
+        companyRuc: response.rucEmpresa || '',
+        email: response.usuario || '',
+      };
+      
+      setUser(userData);
+    } catch (error) {
+      console.error('Error en login:', error);
+      throw error;
+    }
   };
 
   const logout = () => {
@@ -41,8 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser({
         ...user,
         role,
-        companyName: role === 'EMPRESA' ? 'Corporación Industrial S.A.' : undefined,
-        companyRuc: role === 'EMPRESA' ? '1790000001001' : undefined,
       });
     }
   };

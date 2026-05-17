@@ -39,8 +39,16 @@ export function BatchList() {
   };
 
   useEffect(() => {
+    if (user?.role === 'EMPRESA') {
+      setRucFilter(user.companyRuc || '');
+    } else {
+      setRucFilter('');
+    }
+  }, [user?.role]);
+
+  useEffect(() => {
     fetchBatches();
-  }, [user, serviceTypeFilter, statusFilter, rucFilter, fechaDesde, fechaHasta]);
+  }, [serviceTypeFilter, statusFilter, rucFilter, fechaDesde, fechaHasta]);
 
   const clearFilters = () => {
     setServiceTypeFilter('ALL');
