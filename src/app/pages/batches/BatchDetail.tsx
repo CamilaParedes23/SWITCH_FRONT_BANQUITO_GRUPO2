@@ -43,7 +43,7 @@ export function BatchDetail() {
   } = useBatchDetail(id);
 
   const [activeTab, setActiveTab] = useState<'lines' | 'settlement' | 'novedades' | 'comprobante'>('lines');
-  const [showActionModal, setShowActionModal] = useState<{ type: 'VALIDATE' | 'PROCESS_AUTO' | 'ANNUL' | null }>({ type: null });
+  const [showActionModal, setShowActionModal] = useState<{ type: 'ANNUL' | null }>({ type: null });
   const [annulReason, setAnnulReason] = useState('');
   const [novedadesFormat, setNovedadesFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
   const [comprobanteFormat, setComprobanteFormat] = useState<'csv' | 'json' | 'pdf'>('csv');
@@ -51,35 +51,8 @@ export function BatchDetail() {
 
   const handleAction = async () => {
     if (!id || isActionLoading) return;
-    console.log('handleAction - id:', id, 'type:', showActionModal.type);
     setIsActionLoading(true);
     try {
-      if (showActionModal.type === 'VALIDATE') {
-        const res = await BatchService.validateBatch(id);
-        setValidationErrors(res.errores || []);
-        if (res.errores?.length > 0) {
-          toast.error(`Validación completada con ${res.errores.length} error(es) estructural(es).`);
-        } else {
-          toast.success('Archivo validado exitosamente. Sin errores estructurales.');
-        }
-      }
-      if (showActionModal.type === 'PROCESS_AUTO') {
-        // Caso 1: Estado VALIDADO → Procesar + Liquidar
-        if (batch.estado === 'VALIDADO') {
-          // Paso 1: Procesar lote (procesamiento financiero)
-          const processRes = await BatchService.processBatch(id);
-          const estadoProcesamiento = processRes?.estado;
-
-          // Paso 2: Liquidar solo si fue PROCESADO_TOTAL o PROCESADO_PARCIAL (con al menos 1 exitosa)
-          if (estadoProcesamiento === 'PROCESADO_TOTAL' || estadoProcesamiento === 'PROCESADO_PARCIAL') {
-            await BatchService.liquidateBatch(id);
-          }
-        }
-        // Caso 2: Estado PROCESADO_PARCIAL o PROCESADO_TOTAL → Solo Liquidar (reintento)
-        else if (batch.estado === 'PROCESADO_PARCIAL' || batch.estado === 'PROCESADO_TOTAL') {
-          await BatchService.liquidateBatch(id);
-        }
-      }
       if (showActionModal.type === 'ANNUL') await BatchService.annulBatch(id, annulReason);
 
       toast.success('Petición procesada por el Switch.');
@@ -88,7 +61,6 @@ export function BatchDetail() {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Error en la operación bancaria.';
 
-      // Manejo de errores amigables para doble click y conflictos
       if (errorMessage.includes('409') || errorMessage.includes('conflict') || errorMessage.includes('ya está en proceso')) {
         toast.error('La operación ya está en proceso. Por favor espere a que termine.');
       } else if (errorMessage.includes('500') || errorMessage.includes('internal server') || errorMessage.includes('error del servidor')) {
@@ -135,7 +107,7 @@ export function BatchDetail() {
     }
   };
 
-  if (!batch.uuidLote) return <div className="p-20 text-center italic text-gray-400">Consultando PostgreSQL...</div>;
+  if (!batch.uuidLote) return <div className="p-20 text-center italic text-gray-400">Cargando información del lote...</div>;
 
 
   return (
@@ -246,11 +218,7 @@ export function BatchDetail() {
 
       <BatchActions
         estado={batch.estado}
-        userRole={user?.role}
         isLoading={isActionLoading}
-        successfulLinesCount={successfulLines || 0}
-        onValidate={() => setShowActionModal({ type: 'VALIDATE' })}
-        onProcessAuto={() => setShowActionModal({ type: 'PROCESS_AUTO' })}
         onAnnul={() => setShowActionModal({ type: 'ANNUL' })}
       />
 
@@ -283,18 +251,13 @@ export function BatchDetail() {
 
       <ConfirmModal
         isOpen={showActionModal.type !== null}
-        title={showActionModal.type === 'PROCESS_AUTO' ? (batch.estado === 'VALIDADO' ? 'Procesamiento Automático del Lote' : 'Liquidación del Lote') : showActionModal.type === 'VALIDATE' ? 'Validación Estructural' : 'Confirmar Acción'}
-        variant={showActionModal.type === 'ANNUL' ? 'danger' : 'warning'}
+        title="Confirmar Anulación"
+        variant="danger"
         confirmText="Confirmar"
         message={
           <div className="space-y-4 text-gray-600">
-            {showActionModal.type === 'VALIDATE' && "El Switch validará la estructura del archivo (sumatorias, RUC, duplicidad). Esta acción no afecta los saldos del Core Bancario."}
-            {showActionModal.type === 'PROCESS_AUTO' && batch.estado === 'VALIDADO' && "El Switch ejecutará automáticamente: Procesamiento Financiero → Cálculo de Tarifaje → Liquidación Contable. Esta acción afectará los saldos del Core Bancario."}
-            {showActionModal.type === 'PROCESS_AUTO' && (batch.estado === 'PROCESADO_PARCIAL' || batch.estado === 'PROCESADO_TOTAL') && "El Switch ejecutará: Cálculo de Tarifaje → Liquidación Contable. Esta acción afectará los saldos del Core Bancario."}
-            {showActionModal.type === 'ANNUL' && "Ingrese el motivo de anulación para el registro oficial de auditoría:"}
-            {showActionModal.type === 'ANNUL' && (
-              <textarea className="w-full p-3 border rounded-lg text-sm font-sans" rows={3} value={annulReason} onChange={(e) => setAnnulReason(e.target.value)} placeholder="Motivo de la anulación..." />
-            )}
+            <p>Ingrese el motivo de anulación para el registro oficial de auditoría:</p>
+            <textarea className="w-full p-3 border rounded-lg text-sm font-sans" rows={3} value={annulReason} onChange={(e) => setAnnulReason(e.target.value)} placeholder="Motivo de la anulación..." />
           </div>
         }
         onConfirm={handleAction}

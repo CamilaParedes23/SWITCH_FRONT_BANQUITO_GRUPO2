@@ -118,11 +118,11 @@ export function BatchUpload() {
 
       <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
         <p className="text-sm text-blue-800 font-bold flex items-center gap-2">
-          <Info className="w-4 h-4" /> Nota Importante
+          <Info className="w-4 h-4" /> Información
         </p>
         <p className="text-xs text-blue-700 mt-1 leading-relaxed">
-          El <strong>Tipo de Servicio</strong> y la <strong>Cuenta Matriz de Cargo</strong> se leen directamente desde la cabecera del archivo cargado (línea H). 
-          Los valores seleccionados en este formulario son informativos y deben coincidir con el contenido del archivo.
+          El sistema lee automáticamente el tipo de servicio y la cuenta de cargo desde el archivo. 
+          Los campos de este formulario son solo de referencia para verificar que la información sea correcta.
         </p>
       </div>
 

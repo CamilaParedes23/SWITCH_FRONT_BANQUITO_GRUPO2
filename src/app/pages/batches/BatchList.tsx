@@ -72,7 +72,7 @@ export function BatchList() {
           <h1 className="text-3xl font-bold text-[#0D1B4B]">
             {user?.role === 'EMPRESA' ? 'Mis Lotes' : 'Consulta de Lotes'}
           </h1>
-          <p className="text-gray-600 mt-1">Conexión directa con PostgreSQL vía Specification API</p>
+          <p className="text-gray-600 mt-1">Consulta de lotes de pagos masivos</p>
         </div>
         <div className="flex gap-2">
           <button 

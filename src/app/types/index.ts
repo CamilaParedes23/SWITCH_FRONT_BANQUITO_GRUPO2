@@ -1,4 +1,4 @@
-export type UserRole = 'EMPRESA' | 'OPERADOR' | 'AUDITOR' | 'ADMIN';
+export type UserRole = 'EMPRESA';
 
 export type BatchStatus =
   | 'RECIBIDO'

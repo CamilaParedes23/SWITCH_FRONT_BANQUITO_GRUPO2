@@ -6,7 +6,6 @@ interface AuthContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  switchRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,17 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const switchRole = (role: UserRole) => {
-    if (user) {
-      setUser({
-        ...user,
-        role,
-      });
-    }
-  };
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, switchRole }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -23,7 +23,7 @@ const menuItems: MenuItem[] = [
     path: '/',
     label: 'Dashboard',
     icon: <LayoutDashboard className="w-5 h-5" />,
-    roles: ['EMPRESA', 'OPERADOR', 'AUDITOR', 'ADMIN'],
+    roles: ['EMPRESA'],
   },
   {
     path: '/batches',
@@ -38,34 +38,10 @@ const menuItems: MenuItem[] = [
     roles: ['EMPRESA'],
   },
   {
-    path: '/batches/all',
-    label: 'Todos los Lotes',
-    icon: <List className="w-5 h-5" />,
-    roles: ['OPERADOR', 'AUDITOR', 'ADMIN'],
-  },
-  {
-    path: '/config/services',
-    label: 'Tipos de Servicio',
-    icon: <Settings className="w-5 h-5" />,
-    roles: ['OPERADOR', 'ADMIN'],
-  },
-  {
     path: '/config/tariffs',
     label: 'Tarifas',
     icon: <FileSpreadsheet className="w-5 h-5" />,
-    roles: ['EMPRESA', 'OPERADOR', 'ADMIN'],
-  },
-  {
-    path: '/config/parameters',
-    label: 'Parámetros',
-    icon: <Settings className="w-5 h-5" />,
-    roles: ['ADMIN'],
-  },
-  {
-    path: '/health',
-    label: 'Estado del Sistema',
-    icon: <Activity className="w-5 h-5" />,
-    roles: ['OPERADOR', 'ADMIN'],
+    roles: ['EMPRESA'],
   },
 ];
 
