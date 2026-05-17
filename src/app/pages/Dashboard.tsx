@@ -19,7 +19,7 @@ import { useFetchData } from '../hooks/useFetchData';
 import { ConsultaLoteResponse, PaginaResponse } from '../types/responses';
 import { MAX_PAGE_SIZE } from '../constants';
 
-interface DashboardStats {
+interface Stats {
   totalLotes: number;
   montoTotal: number;
   pendientes: number;
@@ -27,10 +27,9 @@ interface DashboardStats {
   anulados: number;
   cerrados: number;
   rechazados: number;
-  procesados: number;
 }
 
-function calculateDashboardStats(batches: ConsultaLoteResponse[]): DashboardStats {
+function calculateDashboardStats(batches: ConsultaLoteResponse[]): Stats {
   return batches.reduce(
     (acc, b) => {
       acc.totalLotes++;
@@ -40,10 +39,9 @@ function calculateDashboardStats(batches: ConsultaLoteResponse[]): DashboardStat
       if (b.estado === 'ANULADO') acc.anulados++;
       if (b.estado === 'CERRADO') acc.cerrados++;
       if (b.estado === 'RECHAZADO' || b.estado === 'FALLIDO') acc.rechazados++;
-      if (['PROCESADO_TOTAL', 'PROCESADO_PARCIAL'].includes(b.estado)) acc.procesados++;
       return acc;
     },
-    { totalLotes: 0, montoTotal: 0, pendientes: 0, enProceso: 0, anulados: 0, cerrados: 0, rechazados: 0, procesados: 0 }
+    { totalLotes: 0, montoTotal: 0, pendientes: 0, enProceso: 0, anulados: 0, cerrados: 0, rechazados: 0 }
   );
 }
 
@@ -166,17 +164,6 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Procesados</p>
-              <p className="text-3xl font-bold text-blue-600 mt-2">{stats.procesados}</p>
-            </div>
-            <div className="bg-blue-50 p-3 rounded-full">
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">

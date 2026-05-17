@@ -1,8 +1,8 @@
-import { User, LogOut, Shield } from 'lucide-react';
+import { User, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   if (!user) return null;
 
@@ -29,14 +29,6 @@ export function Header() {
               <User className="w-4 h-4 text-gray-600" />
               <span className="text-sm text-gray-900">{user.username}</span>
             </div>
-
-            <button
-              onClick={logout}
-              className="text-gray-600 hover:text-red-600 transition-colors p-2"
-              title="Cerrar sesión"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </div>
