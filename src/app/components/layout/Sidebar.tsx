@@ -53,13 +53,9 @@ const menuItems: MenuItem[] = [
   },
 
   {
-
     path: '/batches',
-
-    label: 'Mis Lotes',
-
+    label: 'Lotes de Pagos',
     icon: <FileText className="w-5 h-5" />,
-
     roles: ['EMPRESA'],
 
   },
