@@ -240,8 +240,6 @@ export function BatchDetail() {
 
           </div>
 
-          <p className="text-xs font-mono text-gray-400 mt-1">{batch.uuidLote}</p>
-
         </div>
 
         <div className="flex flex-wrap gap-3 justify-end">

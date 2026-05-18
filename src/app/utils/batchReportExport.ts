@@ -56,7 +56,6 @@ export type ComprobanteLiquidacionApi = {
 export function reporteNovedadesToCsv(data: ReporteNovedadesApi): string {
   const lines: string[] = [];
   lines.push('# Reporte de novedades — Switch BanQuito');
-  lines.push(toCsvRow(['uuidLote', data.uuidLote ?? '']));
   lines.push(toCsvRow(['tipoReporte', data.tipoReporte ?? '']));
   lines.push(toCsvRow(['fechaGeneracion', data.fechaGeneracion ?? '']));
   lines.push('');
@@ -96,7 +95,6 @@ export function reporteNovedadesToCsv(data: ReporteNovedadesApi): string {
 export function comprobanteLiquidacionToCsv(data: ComprobanteLiquidacionApi): string {
   const lines: string[] = [];
   lines.push('# Comprobante de liquidación corporativa — Switch BanQuito');
-  lines.push(toCsvRow(['uuidLote', data.uuidLote ?? '']));
   lines.push(toCsvRow(['fechaGeneracion', data.fechaGeneracion ?? '']));
   lines.push('');
   lines.push(toCsvRow(['rucEmpresa', 'cuentaMatrizCargo']));
@@ -156,6 +154,23 @@ export function generateComprobantePdf(data: ComprobanteLiquidacionApi): void {
   const azulOscuro = '#0D1B4B';
   const dorado = '#C9A84C';
   
+  // Formatear fecha
+  const formatearFecha = (fecha: string) => {
+    if (!fecha) return '';
+    try {
+      const date = new Date(fecha);
+      return date.toLocaleDateString('es-EC', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return fecha;
+    }
+  };
+  
   // Encabezado con branding
   doc.setFillColor(azulOscuro);
   doc.rect(0, 0, 210, 40, 'F');
@@ -187,8 +202,7 @@ export function generateComprobantePdf(data: ComprobanteLiquidacionApi): void {
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text(`UUID: ${data.uuidLote ?? ''}`, 20, 65);
-  doc.text(`Fecha: ${data.fechaGeneracion ?? ''}`, 20, 72);
+  doc.text(`Fecha: ${formatearFecha(data.fechaGeneracion ?? '')}`, 20, 65);
   
   // Sección Empresa
   doc.setFillColor(250, 250, 252);
@@ -275,6 +289,23 @@ export function generateNovedadesPdf(data: ReporteNovedadesApi): void {
   const azulOscuro = '#0D1B4B';
   const dorado = '#C9A84C';
   
+  // Formatear fecha
+  const formatearFecha = (fecha: string) => {
+    if (!fecha) return '';
+    try {
+      const date = new Date(fecha);
+      return date.toLocaleDateString('es-EC', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return fecha;
+    }
+  };
+  
   // Encabezado con branding
   doc.setFillColor(azulOscuro);
   doc.rect(0, 0, 210, 40, 'F');
@@ -306,8 +337,7 @@ export function generateNovedadesPdf(data: ReporteNovedadesApi): void {
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text(`UUID: ${data.uuidLote ?? ''}`, 20, 65);
-  doc.text(`Fecha: ${data.fechaGeneracion ?? ''}`, 20, 72);
+  doc.text(`Fecha: ${formatearFecha(data.fechaGeneracion ?? '')}`, 20, 65);
   
   // Sección Resumen
   doc.setFillColor(250, 250, 252);
