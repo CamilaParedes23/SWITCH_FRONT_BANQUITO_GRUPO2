@@ -66,10 +66,6 @@ export function BatchDetail() {
 
     setLiquidationResult,
 
-    validationErrors,
-
-    setValidationErrors,
-
     novedades,
 
     comprobante,
@@ -88,7 +84,7 @@ export function BatchDetail() {
 
   const [activeTab, setActiveTab] = useState<'lines' | 'settlement' | 'novedades' | 'comprobante'>('lines');
 
-  const [showActionModal, setShowActionModal] = useState<{ type: 'VALIDATE' | 'PROCESS_AUTO' | 'ANNUL' | null }>({ type: null });
+  const [showActionModal, setShowActionModal] = useState<{ type: 'ANNUL' | null }>({ type: null });
 
   const [annulReason, setAnnulReason] = useState('');
 
@@ -109,58 +105,6 @@ export function BatchDetail() {
     setIsActionLoading(true);
 
     try {
-
-      if (showActionModal.type === 'VALIDATE') {
-
-        const res = await BatchService.validateBatch(id);
-
-        setValidationErrors(res.errores || []);
-
-        if (res.errores?.length > 0) {
-
-          toast.error(`Validación completada con ${res.errores.length} error(es) estructural(es).`);
-
-        } else {
-
-          toast.success('Archivo validado exitosamente. Sin errores estructurales.');
-
-        }
-
-      }
-
-      if (showActionModal.type === 'PROCESS_AUTO') {
-
-        // Caso 1: Estado VALIDADO → Procesar + Liquidar
-
-        if (batch.estado === 'VALIDADO') {
-
-          // Paso 1: Procesar lote (procesamiento financiero)
-
-          const processRes = await BatchService.processBatch(id);
-
-          const estadoProcesamiento = processRes?.estado;
-
-
-
-          // Paso 2: Liquidar solo si fue PROCESADO_TOTAL o PROCESADO_PARCIAL (con al menos 1 exitosa)
-
-          if (estadoProcesamiento === 'PROCESADO_TOTAL' || estadoProcesamiento === 'PROCESADO_PARCIAL') {
-
-            await BatchService.liquidateBatch(id);
-
-          }
-
-        }
-
-        // Caso 2: Estado PROCESADO_PARCIAL o PROCESADO_TOTAL → Solo Liquidar (reintento)
-
-        else if (batch.estado === 'PROCESADO_PARCIAL' || batch.estado === 'PROCESADO_TOTAL') {
-
-          await BatchService.liquidateBatch(id);
-
-        }
-
-      }
 
       if (showActionModal.type === 'ANNUL') await BatchService.annulBatch(id, annulReason);
 
@@ -458,38 +402,6 @@ export function BatchDetail() {
 
 
 
-      {validationErrors.length > 0 && (
-
-        <div className="bg-red-50 border border-red-200 rounded-xl p-5">
-
-          <h4 className="text-sm font-bold text-red-800 mb-3">
-
-            Errores de Validación Estructural ({validationErrors.length})
-
-          </h4>
-
-          <ul className="space-y-2">
-
-            {validationErrors.map((err, idx) => (
-
-              <li key={idx} className="flex items-start gap-2 text-sm text-red-700">
-
-                <span className="font-mono font-bold text-red-500 shrink-0">{err.codigo}</span>
-
-                <span>{err.mensaje}</span>
-
-              </li>
-
-            ))}
-
-          </ul>
-
-        </div>
-
-      )}
-
-
-
       <BatchActions
 
         estado={batch.estado}
@@ -499,10 +411,6 @@ export function BatchDetail() {
         isLoading={isActionLoading}
 
         successfulLinesCount={successfulLines || 0}
-
-        onValidate={() => setShowActionModal({ type: 'VALIDATE' })}
-
-        onProcessAuto={() => setShowActionModal({ type: 'PROCESS_AUTO' })}
 
         onAnnul={() => setShowActionModal({ type: 'ANNUL' })}
 
@@ -568,21 +476,15 @@ export function BatchDetail() {
 
         isOpen={showActionModal.type !== null}
 
-        title={showActionModal.type === 'PROCESS_AUTO' ? (batch.estado === 'VALIDADO' ? 'Procesamiento Automático del Lote' : 'Liquidación del Lote') : showActionModal.type === 'VALIDATE' ? 'Validación Estructural' : 'Confirmar Acción'}
+        title="Confirmar Anulación"
 
-        variant={showActionModal.type === 'ANNUL' ? 'danger' : 'warning'}
+        variant="danger"
 
         confirmText="Confirmar"
 
         message={
 
           <div className="space-y-4 text-gray-600">
-
-            {showActionModal.type === 'VALIDATE' && "El Switch validará la estructura del archivo (sumatorias, RUC, duplicidad). Esta acción no afecta los saldos del Core Bancario."}
-
-            {showActionModal.type === 'PROCESS_AUTO' && batch.estado === 'VALIDADO' && "El Switch ejecutará automáticamente: Procesamiento Financiero → Cálculo de Tarifaje → Liquidación Contable. Esta acción afectará los saldos del Core Bancario."}
-
-            {showActionModal.type === 'PROCESS_AUTO' && (batch.estado === 'PROCESADO_PARCIAL' || batch.estado === 'PROCESADO_TOTAL') && "El Switch ejecutará: Cálculo de Tarifaje → Liquidación Contable. Esta acción afectará los saldos del Core Bancario."}
 
             {showActionModal.type === 'ANNUL' && "Ingrese el motivo de anulación para el registro oficial de auditoría:"}
 
