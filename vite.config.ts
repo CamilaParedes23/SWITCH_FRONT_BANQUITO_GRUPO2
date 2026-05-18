@@ -16,7 +16,13 @@ function figmaAssetResolver() {
   }
 }
 
+// Read configuration from environment variables
+const basePath = process.env.VITE_BASE_PATH || '/switch/'
+const allowedHostsEnv = process.env.VITE_ALLOWED_HOSTS || 'banbanquito.3utilities.com'
+const allowedHosts = allowedHostsEnv.split(',').map(host => host.trim())
+
 export default defineConfig({
+  base: basePath,
   plugins: [
     figmaAssetResolver(),
     // The React and Tailwind plugins are both required for Make, even if
@@ -29,6 +35,10 @@ export default defineConfig({
       // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
     },
+  },
+  server: {
+    host: '0.0.0.0',
+    allowedHosts: allowedHosts
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
