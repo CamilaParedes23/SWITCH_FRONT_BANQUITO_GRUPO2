@@ -41,57 +41,31 @@ import { MAX_PAGE_SIZE } from '../constants';
 
 
 interface DashboardStats {
-
   totalLotes: number;
-
   montoTotal: number;
-
   pendientes: number;
-
   enProceso: number;
-
   anulados: number;
-
   cerrados: number;
-
   rechazados: number;
-
-  procesados: number;
-
 }
 
 
 
 function calculateDashboardStats(batches: ConsultaLoteResponse[]): DashboardStats {
-
   return batches.reduce(
-
     (acc, b) => {
-
       acc.totalLotes++;
-
       acc.montoTotal += b.montoTotalDeclarado || 0;
-
       if (['RECIBIDO', 'VALIDADO', 'ENCOLADO'].includes(b.estado)) acc.pendientes++;
-
       if (['VALIDANDO', 'PROCESANDO'].includes(b.estado)) acc.enProceso++;
-
       if (b.estado === 'ANULADO') acc.anulados++;
-
       if (b.estado === 'CERRADO') acc.cerrados++;
-
       if (b.estado === 'RECHAZADO' || b.estado === 'FALLIDO') acc.rechazados++;
-
-      if (['PROCESADO_TOTAL', 'PROCESADO_PARCIAL'].includes(b.estado)) acc.procesados++;
-
       return acc;
-
     },
-
-    { totalLotes: 0, montoTotal: 0, pendientes: 0, enProceso: 0, anulados: 0, cerrados: 0, rechazados: 0, procesados: 0 }
-
+    { totalLotes: 0, montoTotal: 0, pendientes: 0, enProceso: 0, anulados: 0, cerrados: 0, rechazados: 0 }
   );
-
 }
 
 
@@ -184,7 +158,7 @@ export function Dashboard() {
 
 
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
 
         <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
 
@@ -311,49 +285,15 @@ export function Dashboard() {
 
 
         <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-
           <div className="flex items-center justify-between">
-
             <div>
-
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Rechazados</p>
-
               <p className="text-3xl font-bold text-red-600 mt-2">{stats.rechazados}</p>
-
             </div>
-
             <div className="bg-red-50 p-3 rounded-full">
-
               <AlertTriangle className="w-6 h-6 text-red-600" />
-
             </div>
-
           </div>
-
-        </div>
-
-
-
-        <div className="bg-white rounded-lg shadow-sm p-5 border border-gray-100">
-
-          <div className="flex items-center justify-between">
-
-            <div>
-
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Procesados</p>
-
-              <p className="text-3xl font-bold text-blue-600 mt-2">{stats.procesados}</p>
-
-            </div>
-
-            <div className="bg-blue-50 p-3 rounded-full">
-
-              <TrendingUp className="w-6 h-6 text-blue-600" />
-
-            </div>
-
-          </div>
-
         </div>
 
       </div>
