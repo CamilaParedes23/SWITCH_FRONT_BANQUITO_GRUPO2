@@ -11,6 +11,10 @@ import { SystemHealth } from './pages/health/SystemHealth';
 import { Login } from './pages/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
+// Get basename from environment variable or use default
+const basePath = import.meta.env.VITE_BASE_PATH || '/switch/'
+const basename = basePath.endsWith('/') ? basePath.slice(0, -1) : basePath
+
 export const router = createBrowserRouter([
   {
     path: '/login',
@@ -36,4 +40,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-], { basename: '/switch' });
+], { basename });
