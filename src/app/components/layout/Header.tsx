@@ -1,4 +1,4 @@
-import { User, Shield } from 'lucide-react';
+import { User, Shield, LogOut } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
 
@@ -8,7 +8,7 @@ import { UserRole } from '../../types';
 
 export function Header() {
 
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
 
 
@@ -61,6 +61,14 @@ export function Header() {
               <User className="w-4 h-4 text-gray-600" />
               <span className="text-sm text-gray-900">{user.username}</span>
             </div>
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              title="Cerrar sesión"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Salir</span>
+            </button>
           </div>
         </div>
 
